@@ -27,12 +27,16 @@ class RadioThread(threading.Thread):
             except:
                 self.clients.remove(client)
     def run(self):
-        songs = iter(os.listdir("songs"))
+        songs = os.listdir("songs")
+        random.shuffle(songs)
+        songs = iter(songs)
         while True:
             try:
                 self.currentSong = json.load(open("songs/"+next(songs)))
             except StopIteration:
-                songs = iter(os.listdir("songs"))
+                songs = os.listdir("songs")
+                random.shuffle(songs)
+                songs = iter(songs)
                 self.currentSong = json.load(open("songs/"+next(songs)))
             print("Now playing:", self.currentSong["title"], "by", self.currentSong["artist"])
             self.broadcast("fetchStreamInfo")
