@@ -2,7 +2,7 @@
 A websocket radio server for CC: Tweaked.
 
 ## Client Installation
-``wget https://raw.githubusercontent.com/Hellscaped/cctunes/master/computer/startup.lua startup.lua``
+``wget https://raw.githubusercontent.com/Hellscaped/cctunes/master/startup.lua startup.lua``
 
 ## Server Installation
 1. Install [Python 3](https://www.python.org/downloads/).
