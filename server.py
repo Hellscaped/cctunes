@@ -2,8 +2,12 @@
 
 # CCTunes - Music Streaming Server for CC:Tweaked
 
-import flask, flask_sock, threading, random, os, json, time
+import flask, flask_sock, threading, random, os, json, time, nfp
+from io import BytesIO
+from werkzeug.exceptions import BadRequest
+from PIL import Image
 
+request = flask.request
 app = flask.Flask(__name__)
 sock = flask_sock.Sock(app)
 
@@ -59,6 +63,43 @@ def getStreamInfo():
 @app.route('/getArtwork')
 def getArtwork():
     return flask.send_file("songfiles/"+radio.currentSong["artwork"])
+
+@app.route('/admin', methods=["GET"])
+def getAdminLoginPage():
+    return flask.send_file("admin_login.html")
+
+@app.route("/<name>.css") # Serve CSS stylesheets, which each page has one. Don't need to keep duplicating code
+def getStylesheet(name):
+    if ".." in name:
+        raise BadRequest("Name cannot include '..'")
+    return flask.send_file(f"{name}.css")
+
+@app.route("/panelArtwork/<name>")
+def getPanelArtwork(name):
+    if ".." in name:
+        raise BadRequest("Name cannot include '..'")
+    filename = f"songfiles/{name}.nfp"
+    with open(f"{filename}","r") as f:
+        nfpdata = f.read()
+        img = nfp.nfp_to_img(nfpdata)
+        size = img.size
+        newx = size[0] * 8
+        newy = size[1] * 8
+
+        img = img.resize((newx,newy),Image.NEAREST)
+        img_io = BytesIO()
+        data = img.save(img_io,format="PNG")
+        img_io.seek(0)
+        return flask.send_file(img_io,mimetype="image/png", as_attachment=False)
+
+@app.route("/admin", methods=["POST"])
+def auth():
+    username = request.form.get("username")
+    password = request.form.get("password")
+    checkbox = request.form.get("remember")
+    print(f"{username=}, {password=}, {checkbox=}")
+    return flask.redirect("/admin")
+
 
 @sock.route('/')
 def tune(ws):
